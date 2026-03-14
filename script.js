@@ -1,24 +1,29 @@
-// 1. CONFIGURATION - Matches your GitHub details
+// 1. CONFIGURATION
 const GITHUB_USER = "kishsan-prog"; 
 const REPO_NAME = "my-app-store";
 const JSON_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/apps.json`;
 
-let allApps = []; // Global variable to store apps for searching
+let allApps = []; // Memory storage for searching 1000+ apps
+let deferredPrompt; // For the PWA install prompt
 
-// 2. INITIALIZE STORE
+// 2. INITIALIZE THE STORE
 async function initStore() {
     const grid = document.getElementById('app-grid');
-    grid.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Loading apps...</p>";
+    grid.innerHTML = "<p style='text-align:center; grid-column: 1/-1; padding: 50px;'>Loading Store...</p>";
 
     try {
         const response = await fetch(JSON_URL);
-        if (!response.ok) throw new Error("Could not fetch apps");
+        if (!response.ok) throw new Error("Data not found");
         
         allApps = await response.json();
         renderApps(allApps);
     } catch (error) {
         console.error("Error:", error);
-        grid.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Failed to load apps. Make sure apps.json exists!</p>";
+        grid.innerHTML = `
+            <div style="text-align:center; grid-column: 1/-1; padding: 50px;">
+                <p>Unable to load apps.</p>
+                <small>Make sure apps.json is uploaded to your GitHub repo.</small>
+            </div>`;
     }
 }
 
@@ -27,78 +32,64 @@ function renderApps(appsToDisplay) {
     const grid = document.getElementById('app-grid');
     
     if (appsToDisplay.length === 0) {
-        grid.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No apps found.</p>";
+        grid.innerHTML = "<p style='text-align:center; grid-column: 1/-1; color: gray;'>No apps match your search.</p>";
         return;
     }
 
     grid.innerHTML = appsToDisplay.map(app => `
         <div class="app-card">
-            <img src="${app.icon || 'https://via.placeholder.com/60'}" alt="${app.name} icon">
+            <img src="${app.icon || 'https://via.placeholder.com/62'}" alt="${app.name}">
             <div class="app-details">
-                <h4 style="margin:0; font-size: 1.1rem;">${app.name}</h4>
-                <small style="color: #86868b;">${app.category}</small>
+                <h4>${app.name}</h4>
+                <small>${app.category}</small>
             </div>
             <button class="get-btn" onclick="window.open('${app.link}', '_blank')">GET</button>
         </div>
     `).join('');
 }
 
-// 4. SEARCH LOGIC (Scales to 1000+ apps easily)
+// 4. SEARCH FUNCTIONALITY
 document.getElementById('appSearch').addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
-    
-    const filteredApps = allApps.filter(app => 
+    const filtered = allApps.filter(app => 
         app.name.toLowerCase().includes(searchTerm) || 
         app.category.toLowerCase().includes(searchTerm)
     );
-    
-    renderApps(filteredApps);
+    renderApps(filtered);
 });
 
-// 5. SUBMIT BUTTON LOGIC
-// Instead of a database, we direct users to create a GitHub Issue.
-// This allows you to "Approve" apps before they show up.
+// 5. PWA INSTALL LOGIC (Chrome Mobile)
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent Chrome from showing its own prompt automatically
+    e.preventDefault();
+    deferredPrompt = e;
+    // Show the install button now that we know the app is installable
+    document.getElementById('installBtn').style.display = 'block';
+});
+
+document.getElementById('installBtn').onclick = async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response: ${outcome}`);
+        deferredPrompt = null;
+    } else {
+        alert("To install: Tap the Menu (⋮) or Share button and select 'Add to Home Screen'");
+    }
+};
+
+// 6. SUBMIT BUTTON REDIRECT
 document.getElementById('openModal').onclick = () => {
     const title = encodeURIComponent("App Submission: [App Name]");
     const body = encodeURIComponent(
-        "Please provide the following details:\n\n" +
-        "- App Name:\n" +
-        "- Category:\n" +
-        "- Icon URL (100x100):\n" +
-        "- Download/Website Link:"
+        "Please fill in the details below:\n\n" +
+        "App Name: \n" +
+        "Category: \n" +
+        "Icon URL: \n" +
+        "Link: "
     );
-    
-    const githubSubmissionUrl = `https://github.com/${GITHUB_USER}/${REPO_NAME}/issues/new?title=${title}&body=${body}`;
-    
-    // Open the submission link in a new tab
-    window.open(githubSubmissionUrl, '_blank');
+    window.open(`https://github.com/${GITHUB_USER}/${REPO_NAME}/issues/new?title=${title}&body=${body}`, '_blank');
 };
 
-
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  // Prevent Chrome 67 and earlier from automatically showing the prompt
-  e.preventDefault();
-  // Stash the event so it can be triggered later.
-  deferredPrompt = e;
-});
-
-// You can create a button in HTML with id="installBtn"
-const installBtn = document.getElementById('installBtn');
-
-if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        deferredPrompt = null;
-      } else {
-        alert("To install: Tap the three dots (⋮) in Chrome and select 'Add to Home screen'");
-      }
-    });
-}
-
-// Start the app
+// Start the engine
 initStore();
