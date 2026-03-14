@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Store</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-container">
+            <h1>Apps</h1>
+            <input type="text" id="appSearch" placeholder="Search apps...">
+            <button id="openModal" class="primary-btn">Submit App</button>
+        </div>
+    </nav>
+
+    <main id="app-grid"></main>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>Submit to Store</h2>
+            <p>To keep this store free, submissions are handled via GitHub Issues.</p>
+            <button onclick="window.open('https://github.com/YOUR_USERNAME/YOUR_REPO/issues/new')">Go to GitHub to
+                Submit</button>
+            <button onclick="document.getElementById('modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
