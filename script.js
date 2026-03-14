@@ -74,5 +74,31 @@ document.getElementById('openModal').onclick = () => {
     window.open(githubSubmissionUrl, '_blank');
 };
 
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent Chrome 67 and earlier from automatically showing the prompt
+  e.preventDefault();
+  // Stash the event so it can be triggered later.
+  deferredPrompt = e;
+});
+
+// You can create a button in HTML with id="installBtn"
+const installBtn = document.getElementById('installBtn');
+
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        deferredPrompt = null;
+      } else {
+        alert("To install: Tap the three dots (⋮) in Chrome and select 'Add to Home screen'");
+      }
+    });
+}
+
 // Start the app
 initStore();
