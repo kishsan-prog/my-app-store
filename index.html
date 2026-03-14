@@ -1,35 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>App Store</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007aff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="https://picsum.photos/192">
+
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
     <nav>
         <div class="nav-container">
-            <h1>Apps</h1>
-            <input type="text" id="appSearch" placeholder="Search apps...">
-            <button id="openModal" class="primary-btn">Submit App</button>
+            <div class="header-top">
+                <h1>Apps</h1>
+                <div class="header-btns">
+                    <button id="installBtn" class="secondary-btn">Install</button>
+                    <button id="openModal" class="primary-btn">Submit</button>
+                </div>
+            </div>
+            <div class="search-wrapper">
+                <input type="text" id="appSearch" placeholder="Search for apps, games, and more">
+            </div>
         </div>
     </nav>
 
-    <main id="app-grid"></main>
+    <main id="app-grid">
+        </main>
 
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h2>Submit to Store</h2>
-            <p>To keep this store free, submissions are handled via GitHub Issues.</p>
-            <button onclick="window.open('https://github.com/YOUR_USERNAME/YOUR_REPO/issues/new')">Go to GitHub to
-                Submit</button>
-            <button onclick="document.getElementById('modal').style.display='none'">Close</button>
-        </div>
-    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker Registered'))
+                    .catch(err => console.log('Service Worker Failed', err));
+            });
+        }
+    </script>
 
     <script src="script.js"></script>
 </body>
-
 </html>
